@@ -19,6 +19,7 @@ import static org.wso2.carbon.identity.organization.mgt.endpoint.util.Organizati
 import static org.wso2.carbon.identity.organization.mgt.endpoint.util.OrganizationMgtEndpointUtil.getOrganizationDTOFromOrganization;
 import static org.wso2.carbon.identity.organization.mgt.endpoint.util.OrganizationMgtEndpointUtil.getOrganizationManager;
 import static org.wso2.carbon.identity.organization.mgt.endpoint.util.OrganizationMgtEndpointUtil.getOrganizationAddFromDTO;
+import static org.wso2.carbon.identity.organization.mgt.endpoint.util.OrganizationMgtEndpointUtil.getOrganizationUserRoleManager;
 import static org.wso2.carbon.identity.organization.mgt.endpoint.util.OrganizationMgtEndpointUtil.getSearchCondition;
 import static org.wso2.carbon.identity.organization.mgt.endpoint.util.OrganizationMgtEndpointUtil.getUserStoreConfigDTOsFromUserStoreConfigs;
 import static org.wso2.carbon.identity.organization.mgt.endpoint.util.OrganizationMgtEndpointUtil.handleBadRequestResponse;
@@ -34,6 +35,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.wso2.carbon.identity.organization.mgt.endpoint.dto.OperationDTO;
+import org.wso2.carbon.identity.organization.mgt.endpoint.dto.UserRoleMappingDTO;
+import org.wso2.carbon.identity.organization.user.role.mgt.core.exception.OrganizationUserRoleMgtServerException;
+import org.wso2.carbon.identity.organization.user.role.mgt.core.model.OrganizationUserRoleMapping;
+import org.wso2.carbon.identity.organization.user.role.mgt.core.model.UserRoleMapping;
 
 import javax.ws.rs.core.Response;
 
@@ -77,7 +82,6 @@ public class OrganizationsApiServiceImpl extends OrganizationsApiService {
         }
     }
 
-    @Override
     public Response organizationsGet(SearchContext searchContext, Integer offset, Integer limit, String sortBy, String sortOrder) {
 
         try {
@@ -166,6 +170,44 @@ public class OrganizationsApiServiceImpl extends OrganizationsApiService {
         } catch (Throwable throwable) {
             return handleUnexpectedServerError(throwable, log);
         }
+    }
+
+    @Override
+    public Response organizationsOrganizationIdRolesPatch(String organizationId, List<OperationDTO> operations) {
+
+        try {
+            getOrganizationUserRoleManager().patchOrganizationAndUserRoleMapping(organizationId,
+                    operations.stream()
+                            .map(op -> new org.wso2.carbon.identity.organization.user.role.mgt.core.model.Operation(
+                                    op.getOp(), op.getPath(), op.getValue()))
+                            .collect(Collectors.toList()));
+        } catch (OrganizationUserRoleMgtServerException e) {
+            // @TODO
+        }
+        return Response.ok().build();
+    }
+
+    @Override
+    public Response organizationsOrganizationIdRolesPost(String organizationId, List<UserRoleMappingDTO> userRoles) {
+
+        try {
+            getOrganizationUserRoleManager().addOrganizationAndUserRoleMappings(organizationId,
+            userRoles.stream()
+                    .map(mapping -> new UserRoleMapping(Integer.getInteger(mapping.getRoleId()), mapping.getUsers()))
+                    .collect(Collectors.toList()));
+        } catch (OrganizationUserRoleMgtServerException e) {
+            //@TODO
+        }
+        return Response.ok().build();
+    }
+
+    @Override
+    public Response organizationsOrganizationIdRolesRoleIdUsersUserIdDelete(String organizationId, String roleId,
+                                                                            String userId) {
+
+        getOrganizationUserRoleManager()
+                .deleteOrganizationAndUserRoleMapping(organizationId, userId, Integer.getInteger(roleId));
+        return Response.ok().build();
     }
 
     @Override
