@@ -107,7 +107,7 @@ public class OrganizationUserRoleMgtDAOImpl implements OrganizationUserRoleMgtDA
             for(String userId: userIds) {
                 AbstractUserStoreManager userStoreManager = (AbstractUserStoreManager)Utils.getUserStoreManager(tenantID);
                 org.wso2.carbon.user.core.common.User user = userStoreManager.getUser(userId, null);
-                users.add(new User(user.getUserID(), user.getUsername()));
+                users.add(new User(user.getUserID(), user.getDomainQualifiedUsername()));
             }
         } catch (UserStoreException e) {
             //TODO
