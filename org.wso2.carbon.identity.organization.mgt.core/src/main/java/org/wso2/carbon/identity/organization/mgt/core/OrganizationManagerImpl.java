@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
+import org.wso2.carbon.identity.organization.mgt.core.dao.CacheBackedOrganizationMgtDAO;
 import org.wso2.carbon.identity.organization.mgt.core.dao.OrganizationAuthorizationDao;
 import org.wso2.carbon.identity.organization.mgt.core.dao.OrganizationAuthorizationDaoImpl;
 import org.wso2.carbon.identity.organization.mgt.core.dao.OrganizationMgtDao;
@@ -118,6 +119,8 @@ public class OrganizationManagerImpl implements OrganizationManager {
     private OrganizationMgtDao organizationMgtDao = OrganizationMgtDataHolder.getInstance().getOrganizationMgtDao();
     private OrganizationAuthorizationDao authorizationDao = OrganizationMgtDataHolder.getInstance()
             .getOrganizationAuthDao();
+    private CacheBackedOrganizationMgtDAO cacheBackedOrganizationMgtDAO =
+            OrganizationMgtDataHolder.getInstance().getCacheBackedOrganizationMgtDAO();
 
     @Override
     public Organization addOrganization(OrganizationAdd organizationAdd, boolean isImport)
@@ -166,7 +169,7 @@ public class OrganizationManagerImpl implements OrganizationManager {
                 log.debug("Creating LDAP subdirectory for the organization id : " + organization.getId());
             }
         }
-        organizationMgtDao.addOrganization(getTenantId(), organization);
+        cacheBackedOrganizationMgtDAO.addOrganization(getTenantId(), organization);
         grantCreatorWithFullPermission(organization.getId());
         // Invoke post listeners
         for (OrganizationMgtEventListener listener : listeners) {
@@ -347,7 +350,7 @@ public class OrganizationManagerImpl implements OrganizationManager {
             throw handleClientException(ERROR_CODE_INVALID_ORGANIZATION_DELETE_REQUEST,
                     "Organization " + organizationId + " is not disabled");
         }
-        organizationMgtDao.deleteOrganization(getTenantId(), organizationId.trim());
+        cacheBackedOrganizationMgtDAO.deleteOrganization(getTenantId(), organizationId.trim());
         // Invoke post listeners
         for (OrganizationMgtEventListener listener : listeners) {
             if (listener.isEnable() && !listener.doPostDeleteOrganization(organizationId, getTenantDomain(),
