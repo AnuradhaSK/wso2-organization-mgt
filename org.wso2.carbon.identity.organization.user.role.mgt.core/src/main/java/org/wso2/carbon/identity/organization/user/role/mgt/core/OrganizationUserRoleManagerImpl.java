@@ -55,7 +55,6 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
     public void addOrganizationUserRoleMappings(String organizationId, UserRoleMapping userRoleMapping)
             throws OrganizationUserRoleMgtException, OrganizationManagementException {
 
-//        validateAddRoleMappingRequest(organizationUserRoleMappings);
         GroupDAO groupDAO = new GroupDAO();
         OrganizationUserRoleMgtDAO organizationUserRoleMgtDAO = new OrganizationUserRoleMgtDAOImpl();
         OrganizationMgtDao organizationMgtDao = new OrganizationMgtDaoImpl();
