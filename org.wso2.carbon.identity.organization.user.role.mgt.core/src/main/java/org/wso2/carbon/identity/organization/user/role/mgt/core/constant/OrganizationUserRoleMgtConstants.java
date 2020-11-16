@@ -34,6 +34,10 @@ public class OrganizationUserRoleMgtConstants {
         ERROR_CODE_INVALID_ROLE_ID_ERROR("ORGPERMMGT_00002", "Invalid role id: %s"),
         ERROR_CODE_INVALID_USER_GET_REQUEST_FOR_ORG_ROLE("ORGPERMMGT_00003",
                 "Invalid users search/get request for an organization's role: %s"),
+        ERROR_NO_ROLE_MAPPING_FOUND("ORGPERMMGT_00004",
+                "No organization user role mapping for an organization: %s, user: %s, role: %s"),
+        ERROR_NO_DIRECTLY_ASSIGNED_ROLE_MAPPING_FOUND("ORGPERMMGT_00005",
+                "No organization user role mapping for an organization: %s, user: %s, role: %s, directly assigned at organization: %s"),
 
         // Server errors (ORGPERMMGT_00020-ORGPERMMGT_00040)
         ERROR_CODE_ORGANIZATION_USER_ROLE_MAPPINGS_ADD_ERROR("ORGPERMMGT_00020",
