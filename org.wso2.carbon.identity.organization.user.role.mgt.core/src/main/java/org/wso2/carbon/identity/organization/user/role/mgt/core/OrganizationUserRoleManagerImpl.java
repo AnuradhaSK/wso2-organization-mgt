@@ -19,6 +19,7 @@
 package org.wso2.carbon.identity.organization.user.role.mgt.core;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.context.PrivilegedCarbonContext;
 import org.wso2.carbon.identity.event.IdentityEventException;
 import org.wso2.carbon.identity.event.event.Event;
@@ -119,6 +120,15 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
             } else {
                 usersGetPermissionOnlyToOneOrg.add(user);
             }
+            try {
+                deleteOrganizationsUserRoleMapping(organizationId, user.getUserId(), roleId, organizationId,
+                        !user.isCascadedRole(), true);
+            } catch (OrganizationUserRoleMgtClientException e) {
+                if (StringUtils.equals(ERROR_NO_ROLE_MAPPING_FOUND.getCode(), e.getErrorCode())) {
+                    continue;
+                }
+            }
+
         }
 
         List<OrganizationUserRoleMapping> organizationUserRoleMappings = new ArrayList<>();
@@ -145,7 +155,7 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
         organizationUserRoleMappings.addAll(populateOrganizationUserRoleMappings(organizationId, roleId, hybridRoleId,
                 usersGetPermissionOnlyToOneOrg));
         organizationUserRoleMgtDAO
-                .addOrganizationUserRoleMappings(organizationId, organizationUserRoleMappings, getTenantId());
+                .addOrganizationUserRoleMappings(organizationUserRoleMappings, getTenantId());
         // Fire post-event.
         OrganizationUserRoleMappingForEvent organizationUserRoleMappingForEvent =
                 new OrganizationUserRoleMappingForEvent(organizationId, roleId, userRoleMapping.getUsers().stream()
@@ -167,7 +177,9 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
     }
 
     @Override
-    public void deleteOrganizationsUserRoleMapping(String organizationId, String userId, String roleId)
+    public void deleteOrganizationsUserRoleMapping(String organizationId, String userId, String roleId,
+                                                   String assignedLevel, boolean includeSubOrg,
+                                                   boolean checkInheritance)
             throws OrganizationUserRoleMgtException, OrganizationManagementException {
 
         // Fire pre-event.
@@ -175,7 +187,8 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
                 OrganizationMgtEventConstants.Status.FAILURE);
         OrganizationUserRoleMgtDAO organizationUserRoleMgtDAO = new OrganizationUserRoleMgtDAOImpl();
         boolean roleMappingExists = organizationUserRoleMgtDAO
-                .isOrganizationUserRoleMappingExists(organizationId, userId, roleId, getTenantId());
+                .isOrganizationUserRoleMappingExists(organizationId, userId, roleId, assignedLevel, includeSubOrg,
+                        checkInheritance, getTenantId());
         if (!roleMappingExists) {
             throw new OrganizationUserRoleMgtClientException(
                     String.format(ERROR_NO_ROLE_MAPPING_FOUND.getMessage(), organizationId, roleId, userId),
@@ -186,12 +199,15 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
          Check whether the role mapping is directly assigned to the particular organization or inherited from the
          parent level.
          */
-        List<Boolean> directlyAssignedRoleMappings = organizationUserRoleMgtDAO
-                .getDirectlyAssignedOrganizationUserRoleMappingExists(organizationId, userId, roleId, getTenantId());
-        if (CollectionUtils.isEmpty(directlyAssignedRoleMappings)) {
-            throw new OrganizationUserRoleMgtClientException(
-                    String.format(ERROR_NO_DIRECTLY_ASSIGNED_ROLE_MAPPING_FOUND.getMessage(), organizationId, roleId,
-                            userId, organizationId), ERROR_NO_DIRECTLY_ASSIGNED_ROLE_MAPPING_FOUND.getCode());
+        List<Boolean> directlyAssignedRoleMappings = new ArrayList<>();
+        if(assignedLevel == null || !checkInheritance) {
+            directlyAssignedRoleMappings = organizationUserRoleMgtDAO
+                    .getDirectlyAssignedOrganizationUserRoleMappingExists(organizationId, userId, roleId, getTenantId());
+            if (CollectionUtils.isEmpty(directlyAssignedRoleMappings)) {
+                throw new OrganizationUserRoleMgtClientException(
+                        String.format(ERROR_NO_DIRECTLY_ASSIGNED_ROLE_MAPPING_FOUND.getMessage(), organizationId, roleId,
+                                userId, organizationId), ERROR_NO_DIRECTLY_ASSIGNED_ROLE_MAPPING_FOUND.getCode());
+            }
         }
 
         /*
@@ -240,12 +256,15 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
     }
 
     @Override
-    public boolean isOrganizationUserRoleMappingExists(String organizationId, String userId, String roleId)
+    public boolean isOrganizationUserRoleMappingExists(String organizationId, String userId, String roleId,
+                                                       String assignedLevel, boolean includeSubOrg,
+                                                       boolean checkInheritance)
             throws OrganizationUserRoleMgtException {
 
         OrganizationUserRoleMgtDAO organizationUserRoleMgtDAO = new OrganizationUserRoleMgtDAOImpl();
         return organizationUserRoleMgtDAO
-                .isOrganizationUserRoleMappingExists(organizationId, userId, roleId, getTenantId());
+                .isOrganizationUserRoleMappingExists(organizationId, userId, roleId, assignedLevel, includeSubOrg,
+                        checkInheritance, getTenantId());
     }
 
     private int getTenantId() {
@@ -263,6 +282,7 @@ public class OrganizationUserRoleManagerImpl implements OrganizationUserRoleMana
             organizationUserRoleMapping.setRoleId(roleId);
             organizationUserRoleMapping.setHybridRoleId(hybridRoleId);
             organizationUserRoleMapping.setUserId(user.getUserId());
+            organizationUserRoleMapping.setAssignedLevelOrganizationId(organizationId);
             organizationUserRoleMapping.setCascadedRole(user.isCascadedRole());
             organizationUserRoleMappings.add(organizationUserRoleMapping);
         }
