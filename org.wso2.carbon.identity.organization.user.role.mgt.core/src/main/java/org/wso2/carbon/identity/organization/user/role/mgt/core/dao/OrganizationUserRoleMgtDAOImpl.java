@@ -152,7 +152,7 @@ public class OrganizationUserRoleMgtDAOImpl implements OrganizationUserRoleMgtDA
                 }
 
                 SCIMResponse scimResponse = userResourceManager.listWithGET(userManager, modifiedFilter,
-                        null, null, null, null, null,
+                        1, 1, null, null, null,
                         requestedAttributes.stream().collect(Collectors.joining(",")), null);
 
                 // Decode the received response.
