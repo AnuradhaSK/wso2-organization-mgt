@@ -48,7 +48,6 @@ import static org.wso2.carbon.identity.organization.mgt.core.constant.Organizati
 import static org.wso2.carbon.identity.organization.mgt.core.constant.OrganizationMgtConstants.ROLE_MGT_VIEW_PERMISSION;
 import static org.wso2.carbon.identity.organization.mgt.core.constant.OrganizationMgtConstants.USER_MGT_BASE_PERMISSION;
 import static org.wso2.carbon.identity.organization.mgt.core.constant.OrganizationMgtConstants.USER_MGT_LIST_PERMISSION;
-import static org.wso2.carbon.identity.organization.mgt.core.constant.SQLConstants.ADD_USER_ROLE_ORG_MAPPING;
 import static org.wso2.carbon.identity.organization.mgt.core.constant.SQLConstants.ATTR_VALUE_COLUMN;
 import static org.wso2.carbon.identity.organization.mgt.core.constant.SQLConstants.COUNT_COLUMN;
 import static org.wso2.carbon.identity.organization.mgt.core.constant.SQLConstants.FIND_GROUP_ID_FROM_ROLE_NAME;
